@@ -24,24 +24,11 @@
           <input type="time" v-model="endTime" class="p-2 rounded text-black w-full" />
         </div>
 
-        <!-- Day Type -->
-        <div>
-          <label class="block mb-1">Day Type:</label>
-          <select v-model="dayType" class="p-2 rounded text-black w-full">
-            <option value="regularDay">Regular Day</option>
-            <option value="restDay">Rest Day</option>
-            <option value="specialHoliday">Special Holiday</option>
-            <option value="regularHoliday">Regular Holiday</option>
-            <option value="restDayPlusRegularHoliday">Rest + Regular Holiday</option>
-            <option value="restDayPlusSpecialHoliday">Rest + Special Holiday</option>
-          </select>
-        </div>
-
         <hr class="my-2">
 
         <!-- Multipliers Reference Table -->
         <div class="mt-6 bg-slate-600 p-4 rounded">
-          <h3 class="font-bold mb-2">Multipliers Reference</h3>
+          <h3 class="font-bold mb-2">Multipliers Reference (Click to select)</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-white border-collapse text-sm">
 
@@ -55,8 +42,10 @@
               </thead>
 
               <tbody>
-                <tr v-for="(base, key) in BASE_MULTIPLIERS" :key="key"
-                  :class="key === dayType ? 'bg-yellow-400 bg-opacity-30' : ''">
+                <tr v-for="(base, key) in BASE_MULTIPLIERS" :key="key" @click="dayType = key" :class="[
+                  key === dayType ? 'bg-yellow-400 bg-opacity-30' : '',
+                  'hover:bg-yellow-300 hover:bg-opacity-20 cursor-pointer'
+                ]">
                   <td class="border px-2 py-1 capitalize">
                     {{ key.replace(/([A-Z])/g, ' $1') }}
                   </td>
