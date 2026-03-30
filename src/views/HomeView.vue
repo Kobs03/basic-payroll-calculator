@@ -43,24 +43,50 @@
         <div class="mt-6 bg-slate-600 p-4 rounded">
           <h3 class="font-bold mb-2">Multipliers Reference</h3>
           <div class="overflow-x-auto">
-            <table class="w-full text-white border-collapse">
+            <table class="w-full text-white border-collapse text-sm">
 
               <thead>
                 <tr>
                   <th class="border px-2 py-1 text-left">Day Type</th>
                   <th class="border px-2 py-1">Base</th>
                   <th class="border px-2 py-1">Overtime</th>
+                  <th class="border px-2 py-1">Formula</th>
                 </tr>
               </thead>
 
               <tbody>
                 <tr v-for="(base, key) in BASE_MULTIPLIERS" :key="key"
                   :class="key === dayType ? 'bg-yellow-400 bg-opacity-30' : ''">
-                  <td class="border px-2 py-1 capitalize">{{ key.replace(/([A-Z])/g, ' $1') }}</td>
-                  <td class="border px-2 py-1">{{ base }} ({{ (base * 100).toFixed(0) }}%)</td>
-                  <td class="border px-2 py-1">
-                    {{ OVERTIME_MULTIPLIERS[key].toFixed(2) }} ({{ (OVERTIME_MULTIPLIERS[key] * 100).toFixed(0) }}%)
+
+                  <!-- Day -->
+                  <td class="border px-2 py-1 capitalize">
+                    {{ key.replace(/([A-Z])/g, ' $1') }}
                   </td>
+
+                  <!-- Base -->
+                  <td class="border px-2 py-1">
+                    {{ base }} ({{ (base * 100).toFixed(0) }}%)
+                  </td>
+
+                  <!-- OT -->
+                  <td class="border px-2 py-1">
+                    {{ OVERTIME_MULTIPLIERS[key].toFixed(2) }}
+                    ({{ (OVERTIME_MULTIPLIERS[key] * 100).toFixed(0) }}%)
+                  </td>
+
+                  <!-- 🧠 Formula -->
+                  <td class="border px-2 py-1 text-xs leading-tight">
+                    <div>
+                      Base: rate × {{ base }}
+                    </div>
+                    <div>
+                      OT: rate × {{ OVERTIME_MULTIPLIERS[key].toFixed(2) }}
+                    </div>
+                    <div class="text-purple-300">
+                      Night: +10% (rate × 0.10)
+                    </div>
+                  </td>
+
                 </tr>
               </tbody>
 
@@ -77,15 +103,21 @@
           <p>Monthly Base Salary: <strong>{{ baseSalary }}</strong></p>
           <p>Daily Rate: <strong>{{ dailyRate.toFixed(2) }}</strong></p>
           <p>Hourly Rate: <strong>{{ hourlyRate.toFixed(2) }}</strong></p>
-          <p>Per Minute Rate: <strong>{{ perMinuteRate.toFixed(2) }}</strong></p>
+          <p>Per Minute Rate: <strong>{{ perMinuteRate.toFixed(4) }}</strong></p>
 
           <div class="bg-slate-700 p-3 rounded space-y-1">
             <p>Total Minutes Worked: <strong class="text-gray-200">{{ totalMinutesWorked }}</strong></p>
             <p>Total Hours Worked: <strong class="text-gray-200">{{ totalHoursWorked }}</strong></p>
+
             <p>Base Minutes: <strong class="text-blue-400">{{ baseMinutes }}</strong></p>
             <p>Base Hours: <strong class="text-blue-400">{{ baseHours }}</strong></p>
+
             <p>Overtime Minutes: <strong class="text-orange-400">{{ otMinutes }}</strong></p>
             <p>Overtime Hours: <strong class="text-orange-400">{{ otHours }}</strong></p>
+
+            <!-- 🌙 Night -->
+            <p>Night Minutes: <strong class="text-purple-400">{{ nightMinutes }}</strong></p>
+            <p>Night Hours: <strong class="text-purple-400">{{ nightHours }}</strong></p>
           </div>
         </div>
 
@@ -94,12 +126,17 @@
           <p>Base Pay: <strong>{{ basePay.toFixed(2) }}</strong></p>
         </div>
 
-        <!-- Overtime Pay -->
+        <!-- OT Pay -->
         <div class="bg-orange-600 p-3 rounded text-white">
           <p>Overtime Pay: <strong>{{ otPay.toFixed(2) }}</strong></p>
         </div>
 
-        <!-- Total Pay -->
+        <!-- 🌙 Night Diff -->
+        <div class="bg-purple-600 p-3 rounded text-white">
+          <p>Night Diff Pay: <strong>{{ nightDiffPay.toFixed(2) }}</strong></p>
+        </div>
+
+        <!-- Total -->
         <div class="bg-green-600 p-3 rounded font-bold text-lg text-white">
           Total Pay: <strong>{{ totalPay.toFixed(2) }}</strong>
         </div>
@@ -107,7 +144,6 @@
 
     </div>
   </div>
-
 </template>
 
 <script setup>
@@ -132,55 +168,82 @@ const OVERTIME_MULTIPLIERS = {
   restDayPlusSpecialHoliday: 1.5 * 1.3
 }
 
+const NIGHT_DIFF = 0.10
+
 // Inputs
 const baseSalary = ref(15000)
 const dayType = ref('regularDay')
-
-// Time inputs
 const startTime = ref('08:30')
 const endTime = ref('17:30')
 
-// Compute total minutes worked (subtract 60 minutes break)
-const totalMinutesWorked = computed(() => {
-  if (!startTime.value || !endTime.value) return 0
-  const [startH, startM] = startTime.value.split(':').map(Number)
-  const [endH, endM] = endTime.value.split(':').map(Number)
-  let diffMinutes = (endH * 60 + endM) - (startH * 60 + startM)
-  if (diffMinutes < 0) diffMinutes += 24 * 60
-  return Math.max(diffMinutes - 60, 0) // subtract 1 hour break
+// Helpers
+const toMinutes = (time) => {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+// Timeline generator (minute-level)
+const timeline = computed(() => {
+  if (!startTime.value || !endTime.value) return []
+
+  let start = toMinutes(startTime.value)
+  let end = toMinutes(endTime.value)
+
+  if (end < start) end += 1440
+
+  const arr = []
+
+  for (let t = start; t < end; t++) {
+    const mod = t % 1440
+    arr.push({
+      isNight: (mod >= 1320 || mod < 360)
+    })
+  }
+
+  return arr.slice(60) // minus break
 })
 
-// Total Hours Worked formatted
-const totalHoursWorked = computed(() => {
-  const hours = Math.floor(totalMinutesWorked.value / 60)
-  const minutes = totalMinutesWorked.value % 60
-  return `${hours}h ${minutes}m`
-})
+// Totals
+const totalMinutesWorked = computed(() => timeline.value.length)
 
-// Base and OT minutes
-const baseMinutes = computed(() => Math.min(totalMinutesWorked.value, 480)) // 8 hours = 480 min
+const formatHM = (mins) => {
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return `${h}h ${m}m`
+}
+
+const totalHoursWorked = computed(() => formatHM(totalMinutesWorked.value))
+
+// Base / OT
+const baseMinutes = computed(() => Math.min(totalMinutesWorked.value, 480))
 const otMinutes = computed(() => Math.max(totalMinutesWorked.value - 480, 0))
 
-// Base Hours formatted
-const baseHours = computed(() => {
-  const hours = Math.floor(baseMinutes.value / 60)
-  const minutes = baseMinutes.value % 60
-  return `${hours}h ${minutes}m`
-})
+const baseHours = computed(() => formatHM(baseMinutes.value))
+const otHours = computed(() => formatHM(otMinutes.value))
 
-// Overtime Hours formatted
-const otHours = computed(() => {
-  const hours = Math.floor(otMinutes.value / 60)
-  const minutes = otMinutes.value % 60
-  return `${hours}h ${minutes}m`
-})
+// Night
+const nightMinutes = computed(() => timeline.value.filter(m => m.isNight).length)
+const nightHours = computed(() => formatHM(nightMinutes.value))
 
-// Computed rates
+// Rates
 const dailyRate = computed(() => (baseSalary.value * 12) / 365)
 const hourlyRate = computed(() => dailyRate.value / 8)
 const perMinuteRate = computed(() => hourlyRate.value / 60)
 
-const basePay = computed(() => baseMinutes.value * perMinuteRate.value * BASE_MULTIPLIERS[dayType.value])
-const otPay = computed(() => otMinutes.value * perMinuteRate.value * OVERTIME_MULTIPLIERS[dayType.value])
-const totalPay = computed(() => basePay.value + otPay.value)
+// Pay
+const basePay = computed(() =>
+  baseMinutes.value * perMinuteRate.value * BASE_MULTIPLIERS[dayType.value]
+)
+
+const otPay = computed(() =>
+  otMinutes.value * perMinuteRate.value * OVERTIME_MULTIPLIERS[dayType.value]
+)
+
+const nightDiffPay = computed(() =>
+  nightMinutes.value * perMinuteRate.value * NIGHT_DIFF
+)
+
+const totalPay = computed(() =>
+  basePay.value + otPay.value + nightDiffPay.value
+)
 </script>
