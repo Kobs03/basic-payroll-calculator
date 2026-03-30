@@ -37,13 +37,14 @@
           </select>
         </div>
 
-        <hr>
+        <hr class="my-2">
 
         <!-- Multipliers Reference Table -->
         <div class="mt-6 bg-slate-600 p-4 rounded">
           <h3 class="font-bold mb-2">Multipliers Reference</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-white border-collapse">
+
               <thead>
                 <tr>
                   <th class="border px-2 py-1 text-left">Day Type</th>
@@ -51,6 +52,7 @@
                   <th class="border px-2 py-1">Overtime</th>
                 </tr>
               </thead>
+
               <tbody>
                 <tr v-for="(base, key) in BASE_MULTIPLIERS" :key="key"
                   :class="key === dayType ? 'bg-yellow-400 bg-opacity-30' : ''">
@@ -61,6 +63,7 @@
                   </td>
                 </tr>
               </tbody>
+
             </table>
           </div>
         </div>
@@ -75,10 +78,14 @@
           <p>Daily Rate: <strong>{{ dailyRate.toFixed(2) }}</strong></p>
           <p>Hourly Rate: <strong>{{ hourlyRate.toFixed(2) }}</strong></p>
           <p>Per Minute Rate: <strong>{{ perMinuteRate.toFixed(2) }}</strong></p>
+
           <div class="bg-slate-700 p-3 rounded space-y-1">
             <p>Total Minutes Worked: <strong class="text-gray-200">{{ totalMinutesWorked }}</strong></p>
+            <p>Total Hours Worked: <strong class="text-gray-200">{{ totalHoursWorked }}</strong></p>
             <p>Base Minutes: <strong class="text-blue-400">{{ baseMinutes }}</strong></p>
+            <p>Base Hours: <strong class="text-blue-400">{{ baseHours }}</strong></p>
             <p>Overtime Minutes: <strong class="text-orange-400">{{ otMinutes }}</strong></p>
+            <p>Overtime Hours: <strong class="text-orange-400">{{ otHours }}</strong></p>
           </div>
         </div>
 
@@ -100,6 +107,7 @@
 
     </div>
   </div>
+
 </template>
 
 <script setup>
@@ -142,9 +150,30 @@ const totalMinutesWorked = computed(() => {
   return Math.max(diffMinutes - 60, 0) // subtract 1 hour break
 })
 
+// Total Hours Worked formatted
+const totalHoursWorked = computed(() => {
+  const hours = Math.floor(totalMinutesWorked.value / 60)
+  const minutes = totalMinutesWorked.value % 60
+  return `${hours}h ${minutes}m`
+})
+
 // Base and OT minutes
 const baseMinutes = computed(() => Math.min(totalMinutesWorked.value, 480)) // 8 hours = 480 min
 const otMinutes = computed(() => Math.max(totalMinutesWorked.value - 480, 0))
+
+// Base Hours formatted
+const baseHours = computed(() => {
+  const hours = Math.floor(baseMinutes.value / 60)
+  const minutes = baseMinutes.value % 60
+  return `${hours}h ${minutes}m`
+})
+
+// Overtime Hours formatted
+const otHours = computed(() => {
+  const hours = Math.floor(otMinutes.value / 60)
+  const minutes = otMinutes.value % 60
+  return `${hours}h ${minutes}m`
+})
 
 // Computed rates
 const dailyRate = computed(() => (baseSalary.value * 12) / 365)
