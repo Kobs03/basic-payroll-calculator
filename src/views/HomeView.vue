@@ -166,19 +166,27 @@ const endTime = ref('17:30')
 
 // Timeline
 const toMinutes = (time) => time.split(':').map(Number).reduce((h, m) => h * 60 + m)
+
 const timeline = computed(() => {
   if (!startTime.value || !endTime.value) return []
   let start = toMinutes(startTime.value)
   let end = toMinutes(endTime.value)
-  if (end < start) end += 1440
+  if (end < start) end += 1440 // overnight
   const arr = []
-  for (let t = start; t < end; t++) { const mod = t % 1440; arr.push({ isNight: mod >= 1320 || mod < 360 }) }
-  return arr.slice(60)
+  for (let t = start; t < end; t++) {
+    const mod = t % 1440
+    arr.push({ isNight: mod >= 1320 || mod < 360 })
+  }
+
+  // Deduct 1 hour only if total duration is >= 9 hours (540 mins)
+  if (arr.length >= 540) arr.splice(0, 60)
+
+  return arr
 })
 
 // Totals
-const totalMinutesWorked = computed(() => timeline.value.length)
 const formatHM = mins => `${Math.floor(mins / 60)}h ${mins % 60}m`
+const totalMinutesWorked = computed(() => timeline.value.length)
 const totalHoursWorked = computed(() => formatHM(totalMinutesWorked.value))
 const baseMinutes = computed(() => Math.min(totalMinutesWorked.value, 480))
 const otMinutes = computed(() => Math.max(totalMinutesWorked.value - 480, 0))
