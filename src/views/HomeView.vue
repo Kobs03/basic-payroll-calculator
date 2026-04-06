@@ -3,118 +3,163 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
       <!-- Left div: Inputs -->
-      <div class="bg-slate-500 text-white p-6 rounded-xl shadow space-y-4">
-        <h2 class="font-bold text-lg">Pay Calculator</h2>
+      <div class="bg-slate-800 text-white p-5 rounded-2xl shadow-lg space-y-5 border border-slate-700">
+
+        <h2 class="font-extrabold text-lg text-center text-white">Pay Calculator</h2>
 
         <!-- Base Salary -->
-        <div>
-          <label class="block mb-1">Base Salary (Monthly):</label>
-          <input type="number" v-model.number="baseSalary" class="p-2 rounded text-black w-full" />
+        <div class="flex flex-col space-y-1">
+          <label class="text-sm font-semibold">Base Salary (Monthly)</label>
+          <input type="number" v-model.number="baseSalary"
+            class="p-2 rounded-md border border-slate-600 w-full bg-slate-700 focus:ring-2 focus:ring-primary focus:outline-none" />
         </div>
 
-        <!-- Start Time -->
-        <div>
-          <label class="block mb-1">Start Time:</label>
-          <input type="time" v-model="startTime" class="p-2 rounded text-black w-full" />
+        <!-- Start & End Time -->
+        <div class="flex gap-3">
+          <div class="flex-1 flex flex-col space-y-1">
+            <label class="text-sm font-semibold">Start Time</label>
+            <input type="time" v-model="startTime"
+              class="p-2 rounded-md border border-slate-600 w-full bg-slate-700 focus:ring-2 focus:ring-primary focus:outline-none" />
+          </div>
+          <div class="flex-1 flex flex-col space-y-1">
+            <label class="text-sm font-semibold">End Time</label>
+            <input type="time" v-model="endTime"
+              class="p-2 rounded-md border border-slate-600 w-full bg-slate-700 focus:ring-2 focus:ring-primary focus:outline-none" />
+          </div>
         </div>
 
-        <!-- End Time -->
-        <div>
-          <label class="block mb-1">End Time:</label>
-          <input type="time" v-model="endTime" class="p-2 rounded text-black w-full" />
+        <hr class="border-slate-700 my-3">
+
+        <!-- Multipliers Reference Cards -->
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div v-for="(base, key) in BASE_MULTIPLIERS" :key="key" @click="dayType = key" :class="[
+            key === dayType ? 'bg-blue-800 ring-2 ring-blue-500' : 'bg-slate-700 hover:bg-blue-700 hover:bg-opacity-50',
+            'p-4 rounded-xl cursor-pointer transition-all shadow-lg flex flex-col justify-between'
+          ]">
+
+            <!-- Day Type -->
+            <div class="text-white font-bold capitalize text-lg mb-2">
+              {{ key.replace(/([A-Z])/g, ' $1') }}
+            </div>
+
+            <!-- Multipliers Section -->
+            <div class="grid grid-cols-3 gap-2 text-sm">
+              <div class="text-gray-300">Base</div>
+              <div class="col-span-2 text-white font-semibold text-right">
+                {{ base.toFixed(2) }} ({{ (base * 100).toFixed(0) }}%)
+              </div>
+
+              <div class="text-gray-300">OT</div>
+              <div class="col-span-2 text-white font-semibold text-right">
+                {{ OVERTIME_MULTIPLIERS[key].toFixed(2) }} ({{ (OVERTIME_MULTIPLIERS[key] * 100).toFixed(0) }}%)
+              </div>
+
+              <div class="text-gray-300">Night Diff</div>
+              <div class="col-span-2 text-purple-300 font-semibold text-right">+10%</div>
+            </div>
+          </div>
         </div>
 
-        <hr class="my-2">
-
-        <!-- Multipliers Reference Table -->
-        <div class="mt-6 bg-slate-600 p-4 rounded">
-          <h3 class="font-bold mb-2">Multipliers Reference (Click to select)</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-white border-collapse text-sm">
-              <thead>
-                <tr>
-                  <th class="border px-2 py-1 text-left">Day Type</th>
-                  <th class="border px-2 py-1">Base</th>
-                  <th class="border px-2 py-1">Overtime</th>
-                  <th class="border px-2 py-1">Formula / Explanation</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(base, key) in BASE_MULTIPLIERS" :key="key" @click="dayType = key" :class="[
-                  key === dayType ? 'bg-yellow-400 bg-opacity-30' : '',
-                  'hover:bg-yellow-300 hover:bg-opacity-20 cursor-pointer'
-                ]">
-                  <td class="border px-2 py-1 capitalize">
-                    {{ key.replace(/([A-Z])/g, ' $1') }}
-                  </td>
-                  <td class="border px-2 py-1">
-                    {{ base.toFixed(2) }} ({{ (base * 100).toFixed(0) }}%)
-                  </td>
-                  <td class="border px-2 py-1">
-                    {{ OVERTIME_MULTIPLIERS[key].toFixed(2) }} ({{ (OVERTIME_MULTIPLIERS[key] * 100).toFixed(0) }}%)
-                  </td>
-                  <td class="border px-2 py-1 text-xs leading-tight space-y-1">
-                    <div>
-                      <strong>Base:</strong> rate × {{ base.toFixed(2) }} = {{ (base * 100).toFixed(0) }}%
-                    </div>
-                    <div>
-                      <strong>OT:</strong> rate × {{ OVERTIME_MULTIPLIERS[key].toFixed(2) }} = {{
-                        (OVERTIME_MULTIPLIERS[key] * 100).toFixed(0) }}%
-                    </div>
-                    <div class="text-purple-300"><strong>Night Diff:</strong> +10% (rate × 0.10)</div>
-                    <div v-if="key.includes('restDay') || key.includes('holiday')" class="text-gray-300 text-[0.7rem]">
-                      <em>Computed: {{ base.toFixed(2) }} × 1.3 = {{ OVERTIME_MULTIPLIERS[key].toFixed(2) }}</em>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Notes / Formulas Outside the Cards -->
+        <div class="mt-4 p-4 bg-slate-700 rounded-xl text-gray-300 text-sm space-y-1 shadow-inner">
+          <div><strong>Base Formula:</strong> per-minute × base multiplier</div>
+          <div><strong>OT Formula:</strong> per-minute × OT multiplier</div>
+          <div class="text-purple-300"><strong>Night Diff Formula:</strong> per-minute × {{ NIGHT_DIFF }} (applied to
+            base & OT minutes during night hours)</div>
+          <div class="italic" v-if="BASE_MULTIPLIERS['restDay'] || BASE_MULTIPLIERS['holiday']">
+            For rest days / holidays: base × 1.3 = OT multiplier (applied where applicable)
           </div>
         </div>
       </div>
 
       <!-- Right div: Pay Breakdown -->
-      <div class="bg-slate-700 text-white p-6 rounded-xl shadow space-y-4">
-        <h2 class="font-bold text-lg mb-2">Pay Breakdown</h2>
+      <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-lg space-y-6">
 
-        <div class="bg-slate-600 p-3 rounded space-y-1">
-          <p>Monthly Base Salary: <strong>{{ baseSalary }}</strong></p>
-          <p>Daily Rate: <strong>{{ dailyRate.toFixed(2) }}</strong></p>
-          <p>Hourly Rate: <strong>{{ hourlyRate.toFixed(2) }}</strong></p>
-          <p>Per Minute Rate: <strong>{{ perMinuteRate.toFixed(4) }}</strong></p>
-          <p>OT Hourly Rate: <strong>{{ otHourlyRate.toFixed(2) }}</strong></p>
-          <p>OT Per Minute Rate: <strong>{{ otPerMinuteRate.toFixed(4) }}</strong></p>
+        <h2 class="font-extrabold text-2xl mb-4 text-center">Pay Breakdown</h2>
 
-          <div class="bg-slate-700 p-3 rounded space-y-1">
-            <p>Total Minutes Worked: <strong class="text-gray-200">{{ totalMinutesWorked }}</strong></p>
-            <p>Total Hours Worked: <strong class="text-gray-200">{{ totalHoursWorked }}</strong></p>
-
-            <p>Base Minutes: <strong class="text-blue-400">{{ baseMinutes }}</strong></p>
-            <p>Base Hours: <strong class="text-blue-400">{{ baseHours }}</strong></p>
-
-            <p>Overtime Minutes: <strong class="text-orange-400">{{ otMinutes }}</strong></p>
-            <p>Overtime Hours: <strong class="text-orange-400">{{ otHours }}</strong></p>
-
-            <p>Night Minutes: <strong class="text-purple-400">{{ nightMinutes }}</strong></p>
-            <p>Night Hours: <strong class="text-purple-400">{{ nightHours }}</strong></p>
+        <!-- Rates Section -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+            <p class="text-sm text-gray-300">Daily Rate</p>
+            <p class="font-bold text-lg">{{ dailyRate.toFixed(2) }}</p>
+          </div>
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+            <p class="text-sm text-gray-300">Hourly Rate</p>
+            <p class="font-bold text-lg">{{ hourlyRate.toFixed(2) }}</p>
+          </div>
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+            <p class="text-sm text-gray-300">Per Minute Rate</p>
+            <p class="font-bold text-lg">{{ perMinuteRate.toFixed(4) }}</p>
+          </div>
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+            <p class="text-sm text-gray-300">OT Hourly Rate</p>
+            <p class="font-bold text-lg">{{ otHourlyRate.toFixed(2) }}</p>
+            <p class="text-sm text-gray-400">OT/Min: {{ otPerMinuteRate.toFixed(4) }}</p>
           </div>
         </div>
 
-        <div class="bg-blue-600 p-3 rounded text-white">
-          <p>Base Pay: <strong>{{ basePay.toFixed(2) }}</strong></p>
-        </div>
-        <div class="bg-orange-600 p-3 rounded text-white">
-          <p>Overtime Pay: <strong>{{ otPay.toFixed(2) }}</strong></p>
-        </div>
-        <div class="bg-purple-600 p-3 rounded text-white">
-          <p>Night Diff Pay: <strong>{{ nightDiffPay.toFixed(2) }}</strong></p>
-        </div>
-        <div class="bg-green-600 p-3 rounded font-bold text-lg text-white">
-          <p>Total Pay: <strong>{{ totalPay.toFixed(2) }}</strong></p>
+        <!-- Worked Time Section -->
+        <div class="bg-slate-700 p-4 rounded-lg shadow-inner space-y-2">
+          <h3 class="font-semibold text-lg mb-2 text-center">Worked Time</h3>
+          <div class="grid grid-cols-2 gap-2 md:grid-cols-4 text-center">
+            <div>
+              <p class="text-gray-300 text-sm">Total Minutes</p>
+              <p class="font-bold">{{ totalMinutesWorked }}</p>
+            </div>
+            <div>
+              <p class="text-gray-300 text-sm">Total Hours</p>
+              <p class="font-bold">{{ totalHoursWorked }}</p>
+            </div>
+            <div>
+              <p class="text-blue-400 text-sm">Base Minutes</p>
+              <p class="font-bold">{{ baseMinutes }}</p>
+            </div>
+            <div>
+              <p class="text-blue-400 text-sm">Base Hours</p>
+              <p class="font-bold">{{ baseHours }}</p>
+            </div>
+            <div>
+              <p class="text-orange-400 text-sm">OT Minutes</p>
+              <p class="font-bold">{{ otMinutes }}</p>
+            </div>
+            <div>
+              <p class="text-orange-400 text-sm">OT Hours</p>
+              <p class="font-bold">{{ otHours }}</p>
+            </div>
+            <div>
+              <p class="text-purple-400 text-sm">Night Minutes</p>
+              <p class="font-bold">{{ nightMinutes }}</p>
+            </div>
+            <div>
+              <p class="text-purple-400 text-sm">Night Hours</p>
+              <p class="font-bold">{{ nightHours }}</p>
+            </div>
+          </div>
         </div>
 
-        <!-- Button to open calculator modal -->
-        <button @click="showCalculator = true" class="bg-gray-800 p-3 rounded w-full hover:bg-gray-700">
+        <!-- Pay Summary Section -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="bg-blue-600 p-4 rounded-lg text-center shadow-md">
+            <p class="text-sm">Base Pay</p>
+            <p class="font-bold text-lg">{{ basePay.toFixed(2) }}</p>
+          </div>
+          <div class="bg-orange-600 p-4 rounded-lg text-center shadow-md">
+            <p class="text-sm">Overtime Pay</p>
+            <p class="font-bold text-lg">{{ otPay.toFixed(2) }}</p>
+          </div>
+          <div class="bg-purple-600 p-4 rounded-lg text-center shadow-md">
+            <p class="text-sm">Night Diff Pay</p>
+            <p class="font-bold text-lg">{{ nightDiffPay.toFixed(2) }}</p>
+          </div>
+          <div class="bg-green-600 p-4 rounded-lg text-center shadow-md">
+            <p class="text-sm">Total Pay</p>
+            <p class="font-extrabold text-xl">{{ totalPay.toFixed(2) }}</p>
+          </div>
+        </div>
+
+        <!-- Open Calculator Button -->
+        <button @click="showCalculator = true"
+          class="bg-gray-900 hover:bg-gray-800 w-full p-3 rounded-xl font-semibold text-white transition-all duration-200">
           Open Calculator
         </button>
       </div>
