@@ -31,7 +31,6 @@
           <h3 class="font-bold mb-2">Multipliers Reference (Click to select)</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-white border-collapse text-sm">
-
               <thead>
                 <tr>
                   <th class="border px-2 py-1 text-left">Day Type</th>
@@ -40,7 +39,6 @@
                   <th class="border px-2 py-1">Formula / Explanation</th>
                 </tr>
               </thead>
-
               <tbody>
                 <tr v-for="(base, key) in BASE_MULTIPLIERS" :key="key" @click="dayType = key" :class="[
                   key === dayType ? 'bg-yellow-400 bg-opacity-30' : '',
@@ -70,7 +68,6 @@
                   </td>
                 </tr>
               </tbody>
-
             </table>
           </div>
         </div>
@@ -85,6 +82,8 @@
           <p>Daily Rate: <strong>{{ dailyRate.toFixed(2) }}</strong></p>
           <p>Hourly Rate: <strong>{{ hourlyRate.toFixed(2) }}</strong></p>
           <p>Per Minute Rate: <strong>{{ perMinuteRate.toFixed(4) }}</strong></p>
+          <p>OT Hourly Rate: <strong>{{ otHourlyRate.toFixed(2) }}</strong></p>
+          <p>OT Per Minute Rate: <strong>{{ otPerMinuteRate.toFixed(4) }}</strong></p>
 
           <div class="bg-slate-700 p-3 rounded space-y-1">
             <p>Total Minutes Worked: <strong class="text-gray-200">{{ totalMinutesWorked }}</strong></p>
@@ -148,44 +147,44 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-// --- PAY CALCULATOR ---
 const BASE_MULTIPLIERS = {
   regularDay: 1, restDay: 1.3, specialHoliday: 1.3,
   regularHoliday: 2, restDayPlusRegularHoliday: 2.6, restDayPlusSpecialHoliday: 1.5
 }
+
 const OVERTIME_MULTIPLIERS = {
   regularDay: 1.25, restDay: 1.3 * 1.3, specialHoliday: 1.3 * 1.3,
   regularHoliday: 2 * 1.3, restDayPlusRegularHoliday: 2.6 * 1.3, restDayPlusSpecialHoliday: 1.5 * 1.3
 }
-const NIGHT_DIFF = 0.10
+
+const NIGHT_DIFF = 1.1
 
 const baseSalary = ref(15000)
 const dayType = ref('regularDay')
 const startTime = ref('08:30')
 const endTime = ref('17:30')
 
-// Timeline
+// --- TIMELINE ---
 const toMinutes = (time) => time.split(':').map(Number).reduce((h, m) => h * 60 + m)
 
 const timeline = computed(() => {
   if (!startTime.value || !endTime.value) return []
   let start = toMinutes(startTime.value)
   let end = toMinutes(endTime.value)
-  if (end < start) end += 1440 // overnight
+  if (end < start) end += 1440
   const arr = []
   for (let t = start; t < end; t++) {
     const mod = t % 1440
     arr.push({ isNight: mod >= 1320 || mod < 360 })
   }
-
-  // Deduct 1 hour only if total duration is >= 9 hours (540 mins)
+  // Deduct 1 hour if total >= 9h
   if (arr.length >= 540) arr.splice(0, 60)
-
   return arr
 })
 
-// Totals
+// --- TOTALS ---
 const formatHM = mins => `${Math.floor(mins / 60)}h ${mins % 60}m`
+
 const totalMinutesWorked = computed(() => timeline.value.length)
 const totalHoursWorked = computed(() => formatHM(totalMinutesWorked.value))
 const baseMinutes = computed(() => Math.min(totalMinutesWorked.value, 480))
@@ -194,21 +193,40 @@ const baseHours = computed(() => formatHM(baseMinutes.value))
 const otHours = computed(() => formatHM(otMinutes.value))
 const nightMinutes = computed(() => timeline.value.filter(m => m.isNight).length)
 const nightHours = computed(() => formatHM(nightMinutes.value))
+
+// --- RATES ---
 const dailyRate = computed(() => baseSalary.value * 12 / 365)
-const hourlyRate = computed(() => dailyRate.value / 8)
+const hourlyRate = computed(() => dailyRate.value * BASE_MULTIPLIERS[dayType.value] / 8)
 const perMinuteRate = computed(() => hourlyRate.value / 60)
-const basePay = computed(() => baseMinutes.value * perMinuteRate.value * BASE_MULTIPLIERS[dayType.value])
-const otPay = computed(() => otMinutes.value * perMinuteRate.value * OVERTIME_MULTIPLIERS[dayType.value])
-const nightDiffPay = computed(() => nightMinutes.value * perMinuteRate.value * NIGHT_DIFF)
+
+// OT rates
+const otHourlyRate = computed(() => hourlyRate.value * (OVERTIME_MULTIPLIERS[dayType.value] / BASE_MULTIPLIERS[dayType.value]))
+const otPerMinuteRate = computed(() => otHourlyRate.value / 60)
+
+// --- PAY ---
+const basePay = computed(() => baseMinutes.value * perMinuteRate.value)
+const otPay = computed(() => otMinutes.value * otPerMinuteRate.value)
+const nightDiffPay = computed(() => {
+  let total = 0
+  timeline.value.forEach((m, index) => {
+    if (!m.isNight) return
+    // minutes after 480 are OT
+    const rate = index < 480 ? perMinuteRate.value : otPerMinuteRate.value
+    total += rate * NIGHT_DIFF
+  })
+  return total
+})
 const totalPay = computed(() => basePay.value + otPay.value + nightDiffPay.value)
 
-// --- CALCULATOR MODAL ---
+// --- CALCULATOR ---
 const showCalculator = ref(false)
 const calcInput = ref('')
 const buttons = ['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', '0', '.', '=', '+']
 const press = btn => {
-  if (btn === '=') { try { calcInput.value = String(eval(calcInput.value)) } catch (e) { calcInput.value = 'Error' } }
-  else calcInput.value += btn
+  if (btn === '=') {
+    try { calcInput.value = String(eval(calcInput.value)) }
+    catch (e) { calcInput.value = 'Error' }
+  } else calcInput.value += btn
 }
 const clearCalc = () => calcInput.value = ''
 </script>
