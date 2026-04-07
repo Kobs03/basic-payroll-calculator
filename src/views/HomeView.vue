@@ -62,9 +62,6 @@
           <div class="text-purple-300"><strong>Night Diff Formula:</strong> per-minute x total night minute/s × {{
             NIGHT_DIFF }} (applied to
             base & OT minutes during night hours)</div>
-          <div class="italic" v-if="BASE_MULTIPLIERS['restDay'] || BASE_MULTIPLIERS['holiday']">
-            For rest days / holidays: base × 1.3 = OT multiplier (applied where applicable)
-          </div>
         </div>
       </div>
 
