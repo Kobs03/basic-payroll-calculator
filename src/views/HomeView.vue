@@ -62,8 +62,8 @@
 
         <!-- Notes / Formulas Outside the Cards -->
         <div class="mt-4 p-4 bg-slate-700 rounded-xl text-gray-300 text-sm space-y-1 shadow-inner">
-          <div><strong>Base Formula:</strong> per-minute × base multiplier</div>
-          <div><strong>OT Formula:</strong> per-minute × OT multiplier</div>
+          <div><strong>Base Formula:</strong> <b>Regular day</b> per-hour/per-minute × base multiplier</div>
+          <div><strong>OT Formula:</strong> <b>Regular day</b> per-hour/per-minute × OT multiplier</div>
           <div class="text-purple-300"><strong>Night Diff Formula:</strong> per-minute × {{ NIGHT_DIFF }} (applied to
             base & OT minutes during night hours)</div>
           <div class="italic" v-if="BASE_MULTIPLIERS['restDay'] || BASE_MULTIPLIERS['holiday']">
