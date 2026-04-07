@@ -93,22 +93,35 @@
         <div class="bg-slate-700 rounded-lg p-4 mb-4 text-center shadow-md relative">
           <p class="text-slate-300 text-sm font-medium mb-2">Selected Day Type</p>
 
-          <!-- Day Type with Fixed Left/Right Stylish Buttons -->
-          <div class="flex items-center justify-center relative">
-            <!-- Back button: fixed left -->
+          <!-- Responsive container -->
+          <div class="relative flex flex-col items-center gap-2 lg:gap-0 lg:flex-row lg:items-center lg:justify-center">
+
+            <!-- Large screen buttons (fixed left/right) -->
             <button @click="prevDayType"
-              class="absolute left-2 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-4 py-2 rounded-full shadow-lg hover:scale-105 transition-transform duration-200 flex items-center gap-1">
-              <span class="text-lg">‹</span> Back
+              class="hidden lg:flex lg:absolute lg:left-4 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-3 py-1 rounded-full shadow-md hover:scale-105 transition-transform duration-200 flex items-center gap-1 text-sm md:text-base">
+              <span class="text-base md:text-lg">‹</span> Back
+            </button>
+
+            <button @click="nextDayType"
+              class="hidden lg:flex lg:absolute lg:right-4 bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold px-3 py-1 rounded-full shadow-md hover:scale-105 transition-transform duration-200 flex items-center gap-1 text-sm md:text-base">
+              Next <span class="text-base md:text-lg">›</span>
             </button>
 
             <!-- Day type label -->
-            <p class="font-extrabold text-2xl text-white">{{ dayTypeLabel }}</p>
+            <p class="font-bold text-xl md:text-2xl text-white text-center mx-2">{{ dayTypeLabel }}</p>
 
-            <!-- Next button: fixed right -->
-            <button @click="nextDayType"
-              class="absolute right-2 bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold px-4 py-2 rounded-full shadow-lg hover:scale-105 transition-transform duration-200 flex items-center gap-1">
-              Next <span class="text-lg">›</span>
-            </button>
+            <!-- Small screen buttons (stacked below label) -->
+            <div class="flex gap-2 lg:hidden mt-2">
+              <button @click="prevDayType"
+                class="bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-3 py-1 rounded-full shadow-md hover:scale-105 transition-transform duration-200 flex items-center gap-1 text-sm md:text-base">
+                <span class="text-base md:text-lg">‹</span> Back
+              </button>
+              <button @click="nextDayType"
+                class="bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold px-3 py-1 rounded-full shadow-md hover:scale-105 transition-transform duration-200 flex items-center gap-1 text-sm md:text-base">
+                Next <span class="text-base md:text-lg">›</span>
+              </button>
+            </div>
+
           </div>
 
           <!-- Formulas -->
