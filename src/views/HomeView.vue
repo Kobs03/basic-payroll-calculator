@@ -4,7 +4,6 @@
 
       <!-- Left div: Inputs -->
       <div class="bg-slate-800 text-white p-5 rounded-2xl shadow-lg space-y-5 border border-slate-700">
-
         <h2 class="font-extrabold text-lg text-center text-white">Pay Calculator</h2>
 
         <!-- Base Salary -->
@@ -36,13 +35,9 @@
             key === dayType ? 'bg-blue-800 ring-2 ring-blue-500' : 'bg-slate-700 hover:bg-blue-700 hover:bg-opacity-50',
             'p-4 rounded-xl cursor-pointer transition-all shadow-lg flex flex-col justify-between'
           ]">
-
-            <!-- Day Type -->
-            <div class="text-white font-bold capitalize text-lg mb-2">
+            <div class="text-white font-bold capitalize text-md mb-2">
               {{ key.replace(/([A-Z])/g, ' $1') }}
             </div>
-
-            <!-- Multipliers Section -->
             <div class="grid grid-cols-3 gap-2 text-sm">
               <div class="text-gray-300">Base</div>
               <div class="col-span-2 text-white font-semibold text-right">
@@ -77,21 +72,63 @@
 
         <h2 class="font-extrabold text-2xl mb-4 text-center">Pay Breakdown</h2>
 
-        <!-- Rates Section -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+        <!-- Reference Rates Section -->
+        <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner mb-4">
+          <h3 class="font-semibold text-lg text-white mb-2">Reference Rates (Base / Regular Day)</h3>
+          <div class="grid grid-cols-3 gap-4">
+            <div>
+              <p class="text-gray-300 text-sm">Daily Rate</p>
+              <p class="font-bold text-white">{{ staticDailyRate.toFixed(2) }}</p>
+            </div>
+            <div>
+              <p class="text-gray-300 text-sm">Hourly Rate</p>
+              <p class="font-bold text-white">{{ staticHourlyRate.toFixed(2) }}</p>
+            </div>
+            <div>
+              <p class="text-gray-300 text-sm">Per Minute Rate</p>
+              <p class="font-bold text-white">{{ staticPerMinuteRate.toFixed(4) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Day Type -->
+        <div class="bg-slate-700 rounded-lg p-4 mb-4 text-center shadow-md space-y-3">
+          <p class="text-slate-300 text-sm font-medium">Selected Day Type</p>
+          <p class="font-bold text-xl text-white">{{ dayTypeLabel }}</p>
+
+          <!-- Formulas -->
+          <div class="bg-slate-600 p-3 rounded-lg text-slate-100 text-xs mt-2 space-y-1 shadow-inner">
+            <div>
+              <strong class="text-teal-300">Base Pay Formula:</strong> Base per-hour/per-minute ×
+              <b class="text-white">{{ BASE_MULTIPLIERS[dayType].toFixed(2) }}</b>
+            </div>
+            <div>
+              <strong class="text-amber-300">OT Pay Formula:</strong> Base per-hour/per-minute × OT multiplier (
+              <b class="text-white">{{ OVERTIME_MULTIPLIERS[dayType].toFixed(2) }}</b>)
+            </div>
+            <div>
+              <strong class="text-purple-300">Night Diff Formula:</strong> Per-minute ×
+              <b class="text-white">{{ (NIGHT_DIFF * 100).toFixed(0) }}%</b> (applied to base & OT minutes during night
+              hours)
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Rates Section -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner hover:bg-slate-600 transition">
             <p class="text-sm text-gray-300">Daily Rate</p>
             <p class="font-bold text-lg">{{ dailyRate.toFixed(2) }}</p>
           </div>
-          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner hover:bg-slate-600 transition">
             <p class="text-sm text-gray-300">Hourly Rate</p>
             <p class="font-bold text-lg">{{ hourlyRate.toFixed(2) }}</p>
           </div>
-          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner hover:bg-slate-600 transition">
             <p class="text-sm text-gray-300">Per Minute Rate</p>
             <p class="font-bold text-lg">{{ perMinuteRate.toFixed(4) }}</p>
           </div>
-          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner">
+          <div class="bg-slate-700 p-4 rounded-lg text-center shadow-inner hover:bg-slate-600 transition">
             <p class="text-sm text-gray-300">OT Hourly Rate</p>
             <p class="font-bold text-lg">{{ otHourlyRate.toFixed(2) }}</p>
             <p class="text-sm text-gray-400">OT/Min: {{ otPerMinuteRate.toFixed(4) }}</p>
@@ -139,19 +176,19 @@
 
         <!-- Pay Summary Section -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="bg-blue-600 p-4 rounded-lg text-center shadow-md">
+          <div class="bg-blue-600 p-4 rounded-lg text-center shadow-md hover:bg-blue-500 transition">
             <p class="text-sm">Base Pay</p>
             <p class="font-bold text-lg">{{ basePay.toFixed(2) }}</p>
           </div>
-          <div class="bg-orange-600 p-4 rounded-lg text-center shadow-md">
+          <div class="bg-orange-600 p-4 rounded-lg text-center shadow-md hover:bg-orange-500 transition">
             <p class="text-sm">Overtime Pay</p>
             <p class="font-bold text-lg">{{ otPay.toFixed(2) }}</p>
           </div>
-          <div class="bg-purple-600 p-4 rounded-lg text-center shadow-md">
+          <div class="bg-purple-600 p-4 rounded-lg text-center shadow-md hover:bg-purple-500 transition">
             <p class="text-sm">Night Diff Pay</p>
             <p class="font-bold text-lg">{{ nightDiffPay.toFixed(2) }}</p>
           </div>
-          <div class="bg-green-600 p-4 rounded-lg text-center shadow-md">
+          <div class="bg-green-600 p-4 rounded-lg text-center shadow-md hover:bg-green-500 transition">
             <p class="text-sm">Total Pay</p>
             <p class="font-extrabold text-xl">{{ totalPay.toFixed(2) }}</p>
           </div>
@@ -162,6 +199,7 @@
           class="bg-gray-900 hover:bg-gray-800 w-full p-3 rounded-xl font-semibold text-white transition-all duration-200">
           Open Calculator
         </button>
+
       </div>
 
     </div>
@@ -211,7 +249,6 @@ const endTime = ref('17:30')
 
 // --- TIMELINE ---
 const toMinutes = (time) => time.split(':').map(Number).reduce((h, m) => h * 60 + m)
-
 const timeline = computed(() => {
   if (!startTime.value || !endTime.value) return []
   let start = toMinutes(startTime.value)
@@ -222,14 +259,12 @@ const timeline = computed(() => {
     const mod = t % 1440
     arr.push({ isNight: mod >= 1320 || mod < 360 })
   }
-  // Deduct 1 hour if total >= 9h
   if (arr.length >= 540) arr.splice(0, 60)
   return arr
 })
 
 // --- TOTALS ---
 const formatHM = mins => `${Math.floor(mins / 60)}h ${mins % 60}m`
-
 const totalMinutesWorked = computed(() => timeline.value.length)
 const totalHoursWorked = computed(() => formatHM(totalMinutesWorked.value))
 const baseMinutes = computed(() => Math.min(totalMinutesWorked.value, 480))
@@ -239,7 +274,12 @@ const otHours = computed(() => formatHM(otMinutes.value))
 const nightMinutes = computed(() => timeline.value.filter(m => m.isNight).length)
 const nightHours = computed(() => formatHM(nightMinutes.value))
 
-// --- RATES ---
+// --- STATIC REFERENCE RATES ---
+const staticDailyRate = computed(() => baseSalary.value * 12 / 365)
+const staticHourlyRate = computed(() => staticDailyRate.value / 8)
+const staticPerMinuteRate = computed(() => staticHourlyRate.value / 60)
+
+// --- DYNAMIC RATES ---
 const dailyRate = computed(() => baseSalary.value * 12 / 365)
 const hourlyRate = computed(() => dailyRate.value * BASE_MULTIPLIERS[dayType.value] / 8)
 const perMinuteRate = computed(() => hourlyRate.value / 60)
@@ -255,13 +295,17 @@ const nightDiffPay = computed(() => {
   let total = 0
   timeline.value.forEach((m, index) => {
     if (!m.isNight) return
-    // minutes after 480 are OT
     const rate = index < 480 ? perMinuteRate.value : otPerMinuteRate.value
     total += rate * NIGHT_DIFF
   })
   return total
 })
 const totalPay = computed(() => basePay.value + otPay.value + nightDiffPay.value)
+
+// --- DAY TYPE LABEL ---
+const dayTypeLabel = computed(() => {
+  return dayType.value.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+})
 
 // --- CALCULATOR ---
 const showCalculator = ref(false)
