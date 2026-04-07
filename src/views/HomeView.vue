@@ -17,12 +17,12 @@
         <!-- Start & End Time -->
         <div class="flex gap-3">
           <div class="flex-1 flex flex-col space-y-1">
-            <label class="text-sm font-semibold">Start Time</label>
+            <label class="text-sm font-semibold">Duty Start Time</label>
             <input type="time" v-model="startTime"
               class="p-2 rounded-md border border-slate-600 w-full bg-slate-700 focus:ring-2 focus:ring-primary focus:outline-none" />
           </div>
           <div class="flex-1 flex flex-col space-y-1">
-            <label class="text-sm font-semibold">End Time</label>
+            <label class="text-sm font-semibold">Duty End Time</label>
             <input type="time" v-model="endTime"
               class="p-2 rounded-md border border-slate-600 w-full bg-slate-700 focus:ring-2 focus:ring-primary focus:outline-none" />
           </div>
@@ -202,7 +202,7 @@ const OVERTIME_MULTIPLIERS = {
   regularHoliday: 2 * 1.3, restDayPlusRegularHoliday: 2.6 * 1.3, restDayPlusSpecialHoliday: 1.5 * 1.3
 }
 
-const NIGHT_DIFF = 1.1
+const NIGHT_DIFF = 0.10
 
 const baseSalary = ref(15000)
 const dayType = ref('regularDay')
