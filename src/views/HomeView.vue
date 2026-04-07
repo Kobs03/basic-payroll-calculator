@@ -90,12 +90,29 @@
         </div>
 
         <!-- Selected Day Type -->
-        <div class="bg-slate-700 rounded-lg p-4 mb-4 text-center shadow-md space-y-3">
-          <p class="text-slate-300 text-sm font-medium">Selected Day Type</p>
-          <p class="font-bold text-xl text-white">{{ dayTypeLabel }}</p>
+        <div class="bg-slate-700 rounded-lg p-4 mb-4 text-center shadow-md relative">
+          <p class="text-slate-300 text-sm font-medium mb-2">Selected Day Type</p>
+
+          <!-- Day Type with Fixed Left/Right Stylish Buttons -->
+          <div class="flex items-center justify-center relative">
+            <!-- Back button: fixed left -->
+            <button @click="prevDayType"
+              class="absolute left-2 bg-gradient-to-r from-blue-500 to-teal-400 text-white font-semibold px-4 py-2 rounded-full shadow-lg hover:scale-105 transition-transform duration-200 flex items-center gap-1">
+              <span class="text-lg">‹</span> Back
+            </button>
+
+            <!-- Day type label -->
+            <p class="font-extrabold text-2xl text-white">{{ dayTypeLabel }}</p>
+
+            <!-- Next button: fixed right -->
+            <button @click="nextDayType"
+              class="absolute right-2 bg-gradient-to-r from-orange-400 to-red-500 text-white font-semibold px-4 py-2 rounded-full shadow-lg hover:scale-105 transition-transform duration-200 flex items-center gap-1">
+              Next <span class="text-lg">›</span>
+            </button>
+          </div>
 
           <!-- Formulas -->
-          <div class="bg-slate-600 p-3 rounded-lg text-slate-100 text-xs mt-2 space-y-1 shadow-inner">
+          <div class="bg-slate-600 p-3 rounded-lg text-slate-100 text-xs mt-4 space-y-1 shadow-inner">
             <div>
               <strong class="text-teal-300">Base Pay Formula:</strong> Base per-hour/per-minute ×
               <b class="text-white">{{ BASE_MULTIPLIERS[dayType].toFixed(2) }}</b>
@@ -244,6 +261,19 @@ const baseSalary = ref(15000)
 const dayType = ref('regularDay')
 const startTime = ref('08:30')
 const endTime = ref('17:30')
+
+// Array of day types for cycling
+const dayTypes = Object.keys(BASE_MULTIPLIERS)
+
+const nextDayType = () => {
+  const currentIndex = dayTypes.indexOf(dayType.value)
+  dayType.value = dayTypes[(currentIndex + 1) % dayTypes.length]
+}
+
+const prevDayType = () => {
+  const currentIndex = dayTypes.indexOf(dayType.value)
+  dayType.value = dayTypes[(currentIndex - 1 + dayTypes.length) % dayTypes.length]
+}
 
 // --- TIMELINE ---
 const toMinutes = (time) => time.split(':').map(Number).reduce((h, m) => h * 60 + m)
