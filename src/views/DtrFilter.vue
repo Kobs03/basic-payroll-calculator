@@ -104,19 +104,10 @@ function addBiometricLog() {
     let type = "IN"
     if (lastLog) type = lastLog.type === "IN" ? "OUT" : "IN"
 
-    // Determine status
-    let status = "logged"
+    // Add log initially as pending
+    emp.rawLogs.push({ timestamp, type, status: "pending" })
 
-    // Check previous logged entries of same type within 1 min
-    const lastLoggedSameType = [...emp.rawLogs]
-        .reverse()
-        .find(l => l.type === type && l.status === "logged")
-    if (lastLoggedSameType) {
-        const diffMs = Math.abs(timestamp - new Date(lastLoggedSameType.timestamp))
-        if (diffMs < 60 * 1000) status = "disregarded"
-    }
-
-    emp.rawLogs.push({ timestamp, type, status })
+    // Recompute clean logs and update raw log statuses
     recomputeCleanLogs(emp)
 }
 
@@ -143,8 +134,7 @@ function recomputeCleanLogs(emp) {
             const ts = new Date(l.timestamp)
             return ts.getFullYear() === today.getFullYear() &&
                 ts.getMonth() === today.getMonth() &&
-                ts.getDate() === today.getDate() &&
-                l.status === "logged"
+                ts.getDate() === today.getDate()
         })
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
 
@@ -158,15 +148,16 @@ function recomputeCleanLogs(emp) {
 
     const firstIn = logs.find(l => l.type === "IN")
     const lastOut = [...logs].reverse().find(l => l.type === "OUT")
+
     const firstInTs = firstIn ? new Date(firstIn.timestamp) : null
     const lastOutTs = lastOut ? new Date(lastOut.timestamp) : null
 
-    // --- Lunch calculation (ignore early INs) ---
+    // --- Lunch calculation (minimum 1-hour after first IN)
     const minLunchDelay = 60 * 60 * 1000
     const lunchOut = logs.find(l => l.type === "OUT" && firstInTs && (new Date(l.timestamp) - firstInTs >= minLunchDelay))
-    const lunchIn = lunchOut ? new Date(lunchOut.timestamp.getTime() + 60 * 60 * 1000) : null // fixed 1 hour lunch
+    const lunchIn = logs.find(l => l.type === "IN" && lunchOut && new Date(l.timestamp) > new Date(lunchOut.timestamp))
     const realLunchOut = lunchOut
-    const realLunchIn = lunchIn ? { timestamp: lunchIn } : null
+    const realLunchIn = lunchIn && new Date(lunchIn.timestamp) > new Date(lunchOut.timestamp) ? lunchIn : null
 
     // --- Time In ---
     let timeInLabel = firstInTs ? format(firstInTs) : "-"
@@ -184,7 +175,7 @@ function recomputeCleanLogs(emp) {
     let undertimeMins = lastOutTs && lastOutTs < shiftEndDate
         ? Math.floor((shiftEndDate - lastOutTs) / 60000)
         : 0
-    undertimeMins = Math.max(0, undertimeMins - 60)
+    undertimeMins = Math.max(0, undertimeMins - 60) // disregard early lunch
     let timeOutLabel = lastOutTs ? format(lastOutTs) : '-'
     if (undertimeMins && lastOutTs) timeOutLabel += " (Undertime)"
     emp.cleanLogs.push({ label: "Time Out", time: timeOutLabel })
@@ -197,7 +188,7 @@ function recomputeCleanLogs(emp) {
     emp.cleanLogs.push({ label: "Total Undertime", time: lastOutTs ? `${undertimeMins} mins` : '0 mins' })
     emp.cleanLogs.push({ label: "Penalized Total", time: `${penalizedTotal} mins` })
 
-    // --- Base Duty Hours (ignore early lunch in) ---
+    // --- Base Duty Hours ---
     let baseDutyMs = 0
     if (firstInTs && lastOutTs) {
         const morningEnd = realLunchOut ? new Date(realLunchOut.timestamp) : lastOutTs
@@ -210,7 +201,8 @@ function recomputeCleanLogs(emp) {
         baseDutyMs = morningMs + afternoonMs
 
         const shiftTotalMs = shiftEndDate - shiftStartDate
-        const maxBaseMs = shiftTotalMs - 60 * 60 * 1000 // 1 hour lunch
+        const lunchMs = 60 * 60 * 1000 // always 1 hour
+        const maxBaseMs = shiftTotalMs - lunchMs
         baseDutyMs = Math.min(baseDutyMs, maxBaseMs)
 
         const lateMs = firstInTs > shiftStartDate ? firstInTs - shiftStartDate : 0
@@ -235,6 +227,18 @@ function recomputeCleanLogs(emp) {
     const totalHours = Math.floor(totalDutyMs / 3600000)
     const totalMinutes = Math.floor((totalDutyMs % 3600000) / 60000)
     emp.cleanLogs.push({ label: "Total Duty Hours", time: `${totalHours} hr ${totalMinutes} min` })
+
+    // --- Update raw log statuses based on clean logs ---
+    const usedTimestamps = []
+    if (firstInTs) usedTimestamps.push(firstInTs.getTime())
+    if (realLunchOut) usedTimestamps.push(new Date(realLunchOut.timestamp).getTime())
+    if (realLunchIn) usedTimestamps.push(new Date(realLunchIn.timestamp).getTime())
+    if (lastOutTs) usedTimestamps.push(lastOutTs.getTime())
+
+    emp.rawLogs.forEach(l => {
+        const ts = l.timestamp instanceof Date ? l.timestamp.getTime() : new Date(l.timestamp).getTime()
+        l.status = usedTimestamps.includes(ts) ? "logged" : "disregarded"
+    })
 }
 
 // Always show all labels
